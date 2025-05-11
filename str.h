@@ -184,9 +184,15 @@ namespace ufo
 
             ~bsstr_t()
             {
+                clear();
+            }
+
+            void clear(){
+                _size = 0;
                 if (_arr)
                 {
                     delete[] _arr;
+                    _arr = nullptr;
                 }
             }
 

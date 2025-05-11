@@ -251,6 +251,7 @@ namespace ufo
             {
                 _alloc.dealocate(_arr, _cap);
             }
+            _cap = 0; 
         }
 
         void _clear_mem()
