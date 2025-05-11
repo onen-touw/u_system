@@ -249,6 +249,9 @@ Trace_t::log("_wifi.");
 			utl::sleep_for(1);
 #endif
 
+#ifdef UFO_SPI
+
+
 			Trace_t::log("_spi2:");
 			_sys._drv._spi2->init(spi_host_device_t::SPI2_HOST, drv_t::spi2_mosi, drv_t::spi2_miso, drv_t::spi2_clk);
 			// app._drv._spi[0] = _drivers._spi2->get_status();
@@ -261,6 +264,7 @@ Trace_t::log("_wifi.");
 			// app._drv._spi[1] = _sys._drv._spi3->get_status();
 			v_done();
 			utl::sleep_for(1);
+#endif
 #endif
 
 			Trace_t::log("_uart0:");
