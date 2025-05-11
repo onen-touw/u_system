@@ -148,6 +148,7 @@ namespace ufo
         bool empty() const noexcept { return !_sz; }
 
         Ty &operator[](sz_t index) { return _arr[index]; }
+        const Ty &operator[](sz_t index) const { return _arr[index]; }
 
         Ty &at(sz_t index)
         {
@@ -223,7 +224,8 @@ namespace ufo
             _destroy_all();
         }
 
-        void reser(){
+        void reset()
+        {
             _clear_mem();
         }
 
