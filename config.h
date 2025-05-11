@@ -19,7 +19,7 @@
 
 #define UFO_WIFI
 #define UFO_WIFI_DEFAULT_START_AP
-#define UFO_WIFI_DEFAULT_START_STA
+// #define UFO_WIFI_DEFAULT_START_STA
 
 namespace ufo {
 

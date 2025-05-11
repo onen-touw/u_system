@@ -140,8 +140,8 @@ namespace ufo
                     if (e < 0)
                     {
                         // add counter
-                        ufo::Error_t &_error = ufo::Error_t::GetInstance();
-                        _error.Push(Warning_t(GenerateInfo_Code(error::codes_t::net_snd_err, "send error")));
+                        // ufo::Error_t &_error = ufo::Error_t::GetInstance();
+                        // _error.Push(Warning_t(GenerateInfo_Code(error::codes_t::net_snd_err, "send error")));
                         
                     }
 

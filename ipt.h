@@ -82,12 +82,12 @@ namespace ufo
         void log()
         {
             uint32_t a = _ip;
-            Trace_t::flog("%u :: %u.%u.%u.%u\n",
-                          _ip,
-                          static_cast<uint32_t>(a & 255),
-                          static_cast<uint32_t>((a >> 8) & 255),
-                          static_cast<uint32_t>((a >> 16) & 255),
-                          static_cast<uint32_t>((a >> 24) & 255));
+            Trace_t::flog(/* "%u :: " */ "%u.%u.%u.%u\n",
+                //   _ip,
+                  static_cast<uint32_t>(a & 255),
+                  static_cast<uint32_t>((a >> 8) & 255),
+                  static_cast<uint32_t>((a >> 16) & 255),
+                  static_cast<uint32_t>((a >> 24) & 255));
         }
 
     private:

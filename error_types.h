@@ -12,6 +12,7 @@ namespace ufo
             unknown = 0,
             internal_generic,       // for both errors and warnings
             app_data_error,
+            uninit_nullptr,
             
             mux_create = 111,
             
