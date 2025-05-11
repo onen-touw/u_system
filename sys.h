@@ -142,7 +142,7 @@ namespace ufo
 			v_done();
 #endif
 			utl::sleep_for(1);
-#ifdef (UFO_SPI)
+#ifdef UFO_SPI
 
 			Trace_t::log("_spi2:");
 			_sys._drv._spi2 = std::make_unique<drv_t::spi_t>();
