@@ -6,7 +6,7 @@
 #include "u_sys/utils.h" // time
 #include "u_sys/cns.h"
 
-#include "u_utils/i2c_dtct.h"
+#include "u_utils/i2c_dtct.h"	// todo: place i2c dtct into i2c_driver
 
 #include "nvs_flash.h"
 #include "sdt.h"
@@ -36,10 +36,18 @@ namespace ufo
 		void wrapped_task(ufo::token_t token)
 		{
 			sys_initialize();
-			
-			_sys._drv._wifi._ap->create(config::wifi_ap_ss, config::wifi_ap_ps);
-			// _drivers._wifi._ap->log_ipinfo();
 
+#ifdef UFO_WIFI
+#	ifdef UFO_WIFI_DEFAULT_START_AP
+			_sys._drv._wifi._ap->create(config::wifi_ap_ss, config::wifi_ap_ps);
+			_sys._drv._wifi._ap->ip_config("192.168.0.64", "192.168.0.1","255.255.255.0");
+#	else 
+#		ifdef UFO_WIFI_DEFAULT_START_STA
+			_sys._drv._wifi._sta->connect(config::wifi_sta_ss, config::wifi_sta_ps);
+			_sys._drv._wifi._sta->ip_config("192.168.0.68", "192.168.0.1","255.255.255.0");
+#		endif
+#	endif
+#endif
 			if (_error)
 			{
 				_error.Trace();
@@ -134,16 +142,17 @@ namespace ufo
 			v_done();
 #endif
 			utl::sleep_for(1);
+#ifdef (UFO_SPI)
 
-			// Trace_t::log("_spi2:");
-			// _drivers._spi2 = std::make_unique<drv_t::spi_t>();
-			// if (!_drivers._spi2)
-			// {
-			// 	v_fail();
-			// 	return false;
-			// }
-			// v_done();
-			// utl::sleep_for(1);
+			Trace_t::log("_spi2:");
+			_sys._drv._spi2 = std::make_unique<drv_t::spi_t>();
+			if (!_sys._drv._spi2)
+			{
+				v_fail();
+				return false;
+			}
+			v_done();
+			utl::sleep_for(1);
 
 #if (UFO_SPI_CNT > 1)
 			Trace_t::log("_spi3:");
@@ -154,6 +163,7 @@ namespace ufo
 				return false;
 			}
 			v_done();
+#endif
 #endif
 			utl::sleep_for(1);
 
@@ -223,26 +233,27 @@ Trace_t::log("_wifi.");
 			Trace_t::log("driver-start::start\n");
 			sys_data_t& _sys = sys_data_t::get_instanse();
 			using namespace ufo::drv;
+			utl::sleep_for(50);
 
 			Trace_t::log("_i2c:");
 			_sys._drv._i2c->Init(ufo::drv::UFO_I2C_port::UFO_I2C_HARDWARE, drv_t::i2c_sda, drv_t::i2c_scl);
 			// app._drv._i2c[0] = _sys._drv._i2c->get_status();
 			v_done();
-			utl::sleep_for(1);
+			utl::sleep_for(50);
 
 #ifdef UFO_I2C_SOFT
 			Trace_t::log("_i2cS:");
 			_sys._drv._i2cSoft->Init(ufo::drv::UFO_I2C_port::UFO_I2C_SOFTWARE, drv_t::i2c_soft_sda, drv_t::i2c_soft_scl);
-			app._drv._i2c[1] = _sys._drv._i2cSoft->get_status();
+			// app._drv._i2c[1] = _sys._drv._i2cSoft->get_status();
 			v_done();
-#endif
 			utl::sleep_for(1);
+#endif
 
-			// Trace_t::log("_spi2:");
-			// _sys._drv._spi2->init(spi_host_device_t::SPI2_HOST, drv_t::spi2_mosi, drv_t::spi2_miso, drv_t::spi2_clk);
+			Trace_t::log("_spi2:");
+			_sys._drv._spi2->init(spi_host_device_t::SPI2_HOST, drv_t::spi2_mosi, drv_t::spi2_miso, drv_t::spi2_clk);
 			// app._drv._spi[0] = _drivers._spi2->get_status();
-			// v_done();
-			// utl::sleep_for(1);
+			v_done();
+			utl::sleep_for(1);
 
 #if (UFO_SPI_CNT > 1)
 			Trace_t::log("_spi3:");
@@ -281,7 +292,7 @@ Trace_t::log("_wifi.");
 
 
 #ifdef UFO_WIFI
-			utl::sleep_for(200);
+			utl::sleep_for(1);
 			esp_err_t ret = nvs_flash_init();
 			if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
 			{
@@ -364,7 +375,6 @@ Trace_t::log("_wifi.");
 				"",
 				[](cns::console_t::block_t block)
 				{
-					block->write("exit was called\n");
 					block->exit();
 				});
 
@@ -373,124 +383,113 @@ Trace_t::log("_wifi.");
 					"",
 					[](cns::console_t::block_t block)
 					{
-						block->write("dev was called\n");
 						vector_t<string_t> &arg_list = block->get_buf();
 
 						if (!arg_list.empty())
 						{
 							if (arg_list.size() > 1)
 							{
-								if (cns::get_obj_type(arg_list[1]) == cns::obj_t::flag)
-								{
-									char f = cns::get_flag(arg_list[1]);
-	
+								cns::opt_t opt(arg_list[1]);
+								if (opt == 'l' || opt == "list"){
 									sys_data_t &_sys = sys_data_t::get_instanse(); // change to pointer
-	
-									if (f == 'l')
-									{
-										ufo::i2c_detecter_console(_sys._drv._i2c.get());
-									}
+									ufo::i2c_detecter_console(_sys._drv._i2c.get());
+									return;
 								}
 							}
 						}
-
+						block->log_incorrect_arg();
 					});
-
+				
 			cns.mk_blank(
 				"wf",
 				"",
 				[](cns::console_t::block_t block)
 				{
-					block->write("wf was called\n");
-
 					vector_t<string_t> &arg_list = block->get_buf();
 
 					if (!arg_list.empty())
 					{
 						if (arg_list.size() > 1)
 						{
-							if (cns::get_obj_type(arg_list[1]) == cns::obj_t::flag)
-							{
-								char f = cns::get_flag(arg_list[1]);
-
-								sys_data_t &_sys = sys_data_t::get_instanse(); // change to pointer
-
-								if (f == 'i')
+							sys_data_t &_sys = sys_data_t::get_instanse(); // change to pointer
+							
+							cns::opt_t opt(arg_list[1]);
+							if (opt == 'i' || opt == "info"){
+								if (_sys._drv._wifi._ap)
 								{
-									// todo
-									if (_sys._drv._wifi._ap)
-									{
-										_sys._drv._wifi._ap->log_ipinfo();
-									}
-									else if (_sys._drv._wifi._sta)
-									{
-										_sys._drv._wifi._sta->log_ipinfo();
-									}
-									else
-									{
-										block->write("no info\n");
-									}
+									_sys._drv._wifi._ap->log_ipinfo();
 								}
-								else if (f == 's')
+								else if (_sys._drv._wifi._sta)
 								{
-									uint16_t sz = arg_list.size();
-									if (sz > 4)
+									_sys._drv._wifi._sta->log_ipinfo();
+								}
+								else
+								{
+									block->write("no info\n");
+								}
+							}
+							else if (opt == 's' || opt == "set-ip")
+							{
+								if (opt.arg_count() != 3)
+								{
+									if (opt.arg_count() == 1)
 									{
-										for (size_t i = 2; i < 5; i++)
+										if (opt.get_arg(0) == "h")
 										{
-											if (cns::get_obj_type(arg_list[i]) != cns::obj_t::arg)
-											{
-												ufo::cns::log_incorrect_arg();
-												return;
-											}
+											block->write("set-ip:\n");
+											block->write("use -s/--set-ip=ip,gw,msk\n");
+											return;
 										}
 									}
-									ip_t ip(arg_list[2].c_str());
-									ip_t gw(arg_list[3].c_str());
-									ip_t msk(arg_list[4].c_str());
-
-									if (!ip || !msk || !gw)
-									{
-										ufo::cns::log_incorrect_arg();
-										return;
-									}
-
-									// todo
-									if (_sys._drv._wifi._ap)
-									{
-										_sys._drv._wifi._ap->ip_config(ip, gw, msk);
-									}
-									else if (_sys._drv._wifi._sta)
-									{
-										_sys._drv._wifi._sta->ip_config(ip, gw, msk);
-									}
-									else
-									{
-										block->write("no info\n");
-										return;
-									}
-									block->write("wf configuring...\n");
-
-									/// todo =============
-									if (_sys._drv._wifi._ap)
-									{
-										_sys._drv._wifi._ap->log_ipinfo();
-									}
-									else if (_sys._drv._wifi._sta)
-									{
-										_sys._drv._wifi._sta->log_ipinfo();
-									}
-									else
-									{
-										block->write("no info\n");
-									}
-									/// ==================
+									block->log_incorrect_arg();
+									return;
 								}
+								
+								ip_t ip(opt.get_arg(0).c_str());
+								ip_t gw(opt.get_arg(1).c_str());
+								ip_t msk(opt.get_arg(2).c_str());
+								if (!ip || !msk || !gw)
+								{
+									block->log_incorrect_arg();
+									return;
+								}
+
+								// todo
+								if (_sys._drv._wifi._ap)
+								{
+									_sys._drv._wifi._ap->ip_config(ip, gw, msk);
+								}
+								else if (_sys._drv._wifi._sta)
+								{
+									_sys._drv._wifi._sta->ip_config(ip, gw, msk);
+								}
+								else
+								{
+									block->write("no info\n");
+									return;
+								}
+								block->write("wf configuring...\n");
+
+								/// todo =============
+								if (_sys._drv._wifi._ap)
+								{
+									_sys._drv._wifi._ap->log_ipinfo();
+								}
+								else if (_sys._drv._wifi._sta)
+								{
+									_sys._drv._wifi._sta->log_ipinfo();
+								}
+								else
+								{
+									block->write("no info\n");
+								}
+								/// ==================
+								return;
 							}
 						}
 					}
+					block->log_incorrect_arg();
 				});
 		}
-		
 	};
 } // ufo
