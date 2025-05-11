@@ -70,23 +70,33 @@ namespace ufo
 
             bool is_read_out_signal(){
                 uint16_t t = _port->Available();
-                if (t == 1) {
+                if (t > 0) {
                     char sig = {};
                     _port->Read(&sig, 1);
                     if (sig == 3 || sig == '~')
                     {
                         return true;
                     }
+                    _port->Flush();
                 }
                 return false;
             }
 
+            void log_incorrect_arg() {
+                write("incorrect arg\n");
+            }
+            
             string_t read(){
                 uint16_t t = _port->Available();
                 if (t)
                 {
                     string_t str(t);
                     _port->Read(str.raw());
+
+                      // back to console (it is suggar)
+                      _port->SendMsg(str.c_str(), str.size());
+                      char b[] = {'\n'};
+                      _port->SendMsg(b, 1);
                     return str;
                 }
                 return string_t();
@@ -115,16 +125,22 @@ namespace ufo
                 int n = vsnprintf(data, req, msg, ap);
                 va_end(ap);
 
+                // char bf[] = {'$', ':'};
+                // _port->SendMsg(bf, 2);
                 _port->SendMsg(data, n);
 
                 return;
             }
 
             void write(const char* buf){
+                // char bf[] = {'$', ':'};
+                // _port->SendMsg(bf, 2);
                 _port->SendMsg(buf);
             }
 
             void write(const string_t& str){
+                // char bf[] = {'$', ':'};
+                // _port->SendMsg(bf, 2);
                 _port->SendMsg(str.c_str(), str.size());
             }
 
@@ -277,52 +293,190 @@ namespace ufo
 #endif
         };
 
-        enum class obj_t
+        class opt_t
         {
-            flag,
-            arg,
-            null,
-        };
-        obj_t get_obj_type(string_t &s)
-        {
-            if (s.size() > 0)
-            {
-                if (s[0] == '-')
+        public:
+            static constexpr uint16_t lng_flag_prefix_len = 2;
+            static constexpr char args_sep = ',';
+            static constexpr char data_sep = '=';
+        private:
+            ufo::string_t _flag;
+            ufo::vector_t<ufo::string_t> _args;
+
+        public:
+            opt_t(ufo::string_t msg){
+                ufo::vector_t<ufo::string_t> sp = msg.split<ufo::vector_t>(data_sep);
+                if (!sp.size())
                 {
-                    return obj_t::flag;
+                    return;
                 }
-                return obj_t::arg;
+
+                if (sp[0].size() > 1)
+                {
+                    if (sp[0][0] == '-')
+                    {
+                        if (sp[0].size() > lng_flag_prefix_len)
+                        {
+                            if (sp[0][1] != '-')
+                            {
+                                return;
+                            }
+                        }
+                        _flag = sp[0];
+                    }
+                }
+                if (sp.size() > 1)
+                {
+                    if (sp[1].size())
+                    {
+                        _args = sp[1].split<ufo::vector_t>(args_sep);
+                    }
+                }
             }
-            return obj_t::null;
-        }
+            opt_t(opt_t&) = delete;
+            ~opt_t(){}
 
-        void log_incorrect_arg() {
-            Trace_t::log("incorrect arg\n");
-        }
 
-        char get_flag(string_t &s) {
-            return s[1];
-        }
+            explicit operator bool() const {
+                return valid();
+            }
+            bool has_arg() const {
+                return _args.size();
+            }
+            uint16_t arg_count() const { return _args.size(); }
 
-        template <typename Ty>
-        Ty get_arg(ufo::string_t &s);
+            bool operator == (const char& c){
+                if (!valid())
+                {
+                    return false;
+                }
+                
+                if (!is_shrot_flag())
+                {
+                    return false;                    
+                }
+                return c == _flag[1];
+            }
 
-        template <>
-        void get_arg(ufo::string_t &s);
+            bool operator == (const ufo::string_t& s){
+                if (!valid())
+                {
+                    return false;
+                }
+                
+                if (is_shrot_flag())
+                {
+                    return false;
+                }
+                return !strcmp(_flag.c_str() + lng_flag_prefix_len, s.c_str());   // +2 for skip '--';
+            }
 
-        template <>
-        float get_arg(ufo::string_t &s)
-        {
-            float f = static_cast<float>(std::atof(s.c_str()));
-            return f;
-        }
+            bool operator == (const char* s){
+                if (!valid())
+                {
+                    return false;
+                }
+                if (is_shrot_flag())
+                {
+                    return false;
+                }
+                return !strcmp(_flag.c_str() + lng_flag_prefix_len, s);   // +2 for skip '--';
+            }
 
-        template <>
-        int get_arg(ufo::string_t &s)
-        {
-            int i = static_cast<float>(std::atoi(s.c_str()));
-            return i;
-        }
+            bool valid() const { return _flag.size() > 1; }
+
+            void clear(){
+                _flag.clear();
+                _args.reset();
+            }
+
+            void log() const {
+                printf("opt log::");
+                if (!_flag.size())
+                {
+                    printf("empty\n");
+                    return;
+                }
+                printf("%s", _flag.c_str());
+                if (!_args.size())
+                {
+                    printf("\n");
+                    return;
+                }
+                printf("=");
+                for (uint16_t i = 0; i < _args.size(); i++)
+                {
+                    printf("%s ", _args[i].c_str());
+                }
+                printf("\n");
+            }
+
+            template <typename Ty,
+                      std::enable_if_t<std::is_same_v<Ty, float>, bool> = true>
+            float get_arg(uint16_t ind) const
+            {
+                if (!has_arg())
+                {
+                    return float{};
+                }
+                if (ind > _args.size() - 1ul)
+                {
+                    return float{};
+                }
+
+                float f = static_cast<float>(std::atof(_args[ind].c_str()));
+                return f;
+            }
+
+            template <typename Ty,
+                      std::enable_if_t<std::is_integral_v<Ty>, bool> = true>
+            Ty get_arg(uint16_t ind) const
+            {
+                if (!has_arg())
+                {
+                    return Ty{};
+                }
+                if (ind > _args.size() - 1ul)
+                {
+                    return Ty{};
+                }
+
+                Ty i = static_cast<Ty>(std::atoi(_args[ind].c_str()));
+                return i;
+            }
+
+            // if ind > args.size() => return _flag
+            ufo::string_t& get_arg(uint16_t ind)
+            {
+                if (!has_arg())
+                {
+                    return _flag;
+                }
+                
+                if (ind > _args.size() - 1ul)
+                {
+                    return _flag;
+                }
+                return _args[ind];
+            }
+            // if ind > args.size() => return _flag
+            const ufo::string_t& get_arg(uint16_t ind) const
+            {
+                if (!has_arg())
+                {
+                    return _flag;
+                }
+                
+                if (ind > _args.size() - 1ul)
+                {
+                    return _flag;
+                }
+                return _args[ind];
+            }
+
+        private:
+            bool is_shrot_flag() const { return _flag.size() < 3; }
+        };
 
         class console_t
         {
@@ -336,7 +490,7 @@ namespace ufo
             block_t _block;
 
         public:
-        console_t(){}
+            console_t(){}
             console_t(port_t* port) {
                 if (!port)
                 {
@@ -402,12 +556,15 @@ namespace ufo
                 }
                 
                 print_class_list();
+                _block->write("$:");    
+
                 while (token && _block->get_event() != event_t::exit)
                 {
                     string_t s = _block->read();
                     if (s.size())
                     {
                         parse(s);
+                        _block->write("$:");    
                     }
                     utl::sleep_for(100);
                 }
@@ -433,7 +590,7 @@ namespace ufo
 
                 for (bl_list_t::simple_iterator_t it = _blanks.begin(); it; ++it)
                 {
-                    _block->write("\t-");
+                    _block->write("\t- ");
                     _block->write(it->get_name());
                     _block->write("\n");
                 }
