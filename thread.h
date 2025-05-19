@@ -408,7 +408,7 @@ namespace ufo
                 xTaskNotifyWait(0, 0, NULL, portMAX_DELAY);
             }
             // std::cout << "terminating::wait end\n";
-            _context->_state = state_t::IDLE;
+            _context->_state = state_t::JOINED;
 
             --detail::u_thread_cnt;
 
@@ -476,6 +476,7 @@ namespace ufo
             if (parent != nullptr)
             {
                 // intptr_t ptr = reinterpret_cast<intptr_t>(parent);
+                
                 // notify parent-task when it call .join() or when it is force terminating
                 xTaskNotify(parent, 0, eNoAction);
             }

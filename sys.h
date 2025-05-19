@@ -277,7 +277,7 @@ Trace_t::log("_wifi.");
 
 #if (UFO_UART_CNT > 1)
 			Trace_t::log("_uart1:");
-			_sys._drv._uart1->init(drv_t::uart_t::unum_t::UART_NUM_1, drv_t::uart1_rx, drv_t::uart1_tx);
+			_sys._drv._uart1->init(drv_t::uart_t::unum_t::UART_NUM_2, drv_t::uart1_rx, drv_t::uart1_tx);
 			// _sys._drv._uart[1] = _sys._drv._uart1->get_status();
 			v_done();
 			
