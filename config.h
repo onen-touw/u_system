@@ -1,11 +1,12 @@
 #pragma once
 
 #include"../u_platfom.h"
+#include "app/appconfig.h"
 
 #include <stdio.h>
-
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
+
 
 // #define UFO_ERROR_TRACE_BG_COLORED
 //#define UFO_ERROR_USE_TIMESTAMP
@@ -16,10 +17,6 @@
 #define UFO_THREAD_NAME 1
 #define UFO_THREAD_INFO 1
 #define UFO_THREAD_DEPENDENCIES 1
-
-// #define UFO_WIFI
-// #define UFO_WIFI_DEFAULT_START_AP
-#define UFO_WIFI_DEFAULT_START_STA
 
 namespace ufo {
 

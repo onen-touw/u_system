@@ -14,7 +14,7 @@ namespace ufo
         public:
             using sockt_t = net::uSocketType_t;
         private:
-            sockt_t _type = sockt_t::UFO_SOCK_NO;
+            sockt_t _type = sockt_t::null;
             int32_t _isock = -1; // socket descriptor
             ipa _source;
         public:
@@ -40,7 +40,7 @@ namespace ufo
                     lwip_setsockopt(_isock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
                 }
 
-                if (_type == sockt_t::UFO_SOCK_SERVER)
+                if (_type == sockt_t::server)
                 {
                     sockaddr_in ai;
                     ai.sin_addr.s_addr = lwip_htonl(INADDR_ANY);
@@ -108,7 +108,7 @@ namespace ufo
                 if (_snd->_data._ready)
                 {
                     int e = 0;
-                    if (_type == sockt_t::UFO_SOCK_SERVER)
+                    if (_type == sockt_t::server)
                     {
                         e = lwip_sendto(_isock, _snd->_data._payload, _snd->_data._len, 0, (struct sockaddr *)&_source.get_native(), sizeof(sockaddr_in));
                     }
@@ -173,7 +173,7 @@ namespace ufo
             // source addr is
 
         private:
-            sockt_t _type = sockt_t::UFO_SOCK_NO;
+            sockt_t _type = sockt_t::null;
             int32_t _isock = -1; // socket descriptor
 
             std::shared_ptr<snd_t> _snd;
@@ -207,7 +207,7 @@ namespace ufo
                     lwip_setsockopt(_isock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
                 }
 
-                if (_type == sockt_t::UFO_SOCK_SERVER)
+                if (_type == sockt_t::server)
                 {
                     sockaddr_in ai;
                     ai.sin_addr.s_addr = lwip_htonl(INADDR_ANY);
@@ -277,7 +277,7 @@ namespace ufo
                 if (_snd->_data._ready)
                 {
                     int e = 0;
-                    if (_type == sockt_t::UFO_SOCK_SERVER)
+                    if (_type == sockt_t::server)
                     {
                         e = lwip_sendto(_isock, _snd->_data._payload, _snd->_data._len, 0, (struct sockaddr *)&_source.get_native(), sizeof(sockaddr_in));
                     }
