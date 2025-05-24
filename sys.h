@@ -67,14 +67,14 @@ namespace ufo
 				uint16_t t = _sys._drv._uart0->Available();
                 if (t)
                 {
-					if (!_sys._cns.get_state())
+					if (_sys._cns.can_run())
 					{
 						char s[1] = {}; 
 						_sys._drv._uart0->Read(s,1);
 	
 						if (s[0] == '~')
 						{
-							_sys._cns.run();
+							_sys._cns.run();	// cns should call .stop in end of ctask
 
 							ufo::cns::console_t cns(_sys._drv._uart0.get());
 							

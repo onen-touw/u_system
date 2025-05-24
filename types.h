@@ -2,6 +2,7 @@
 
 #include "config.h"
 #include "mutex"
+#include "btflg.h"
 
 namespace ufo
 {
@@ -77,22 +78,41 @@ namespace ufo
 
         struct cns_t
         {
+            enum class cns_state_t {
+                started,
+                bloked,
+            };
+
             ufo::mutex_t _lock;
-            bool started = false;
+            ufo::bit_flag_t<uint8_t> _states;
+            // bool started = false;
 
             void run(){
                 ufo::lock_guard<mutex_t>_l(_lock);
-                started = true;
+                _states.set(cns_state_t::started);
+                // started = true;
             }
 
             void stop(){
                 ufo::lock_guard<mutex_t>_l(_lock);
-                started = false;
+                _states.unset(cns_state_t::started);
+                // started = false;
             }
 
-            bool get_state() {
+            // lock for start
+            void block() {
                 ufo::lock_guard<mutex_t>_l(_lock);
-                bool b = started;
+                _states.set(cns_state_t::bloked);
+            }
+
+            void unlock() {
+                ufo::lock_guard<mutex_t>_l(_lock);
+                _states.unset(cns_state_t::bloked);
+            }
+
+            bool can_run() {
+                ufo::lock_guard<mutex_t>_l(_lock);
+                bool b = !(_states.get(cns_state_t::bloked) || _states.get(cns_state_t::started));
                 return b;
             }
         };
