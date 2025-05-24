@@ -23,9 +23,9 @@ namespace ufo
 
         enum class uSocketType_t : uint8_t
         {
-            UFO_SOCK_NO,
-            UFO_SOCK_SERVER,
-            UFO_SOCK_CLIENT,
+            null,
+            server,
+            client,
         };
 
         struct uSocketDataPacket_t
