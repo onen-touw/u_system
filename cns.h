@@ -1,5 +1,5 @@
 #pragma once 
-
+ 
 #include <stdint.h>
 #include <bits/unique_ptr.h>
 #include <bits/shared_ptr.h>
@@ -550,7 +550,7 @@ namespace ufo
             void ctask(token_t token){
                 sys_data_t& _sys = sys_data_t::get_instanse();
 
-                if (!_sys._cns.get_state())
+                if (!_sys._cns.can_run())
                 {
                     _block->write("bad state\n");
                 }

@@ -67,14 +67,14 @@ namespace ufo
 				uint16_t t = _sys._drv._uart0->Available();
                 if (t)
                 {
-					if (!_sys._cns.get_state())
+					if (_sys._cns.can_run())
 					{
 						char s[1] = {}; 
 						_sys._drv._uart0->Read(s,1);
 	
 						if (s[0] == '~')
 						{
-							_sys._cns.run();
+							_sys._cns.run();	// cns should call .stop in end of ctask
 
 							ufo::cns::console_t cns(_sys._drv._uart0.get());
 							
@@ -142,7 +142,7 @@ namespace ufo
 			v_done();
 #endif
 			utl::sleep_for(1);
-#ifdef (UFO_SPI)
+#ifdef UFO_SPI
 
 			Trace_t::log("_spi2:");
 			_sys._drv._spi2 = std::make_unique<drv_t::spi_t>();
@@ -249,6 +249,9 @@ Trace_t::log("_wifi.");
 			utl::sleep_for(1);
 #endif
 
+#ifdef UFO_SPI
+
+
 			Trace_t::log("_spi2:");
 			_sys._drv._spi2->init(spi_host_device_t::SPI2_HOST, drv_t::spi2_mosi, drv_t::spi2_miso, drv_t::spi2_clk);
 			// app._drv._spi[0] = _drivers._spi2->get_status();
@@ -262,6 +265,7 @@ Trace_t::log("_wifi.");
 			v_done();
 			utl::sleep_for(1);
 #endif
+#endif
 
 			Trace_t::log("_uart0:");
 			_sys._drv._uart0->init(drv_t::uart_t::unum_t::UART_NUM_0, drv_t::uart0_rx, drv_t::uart0_tx);
@@ -273,7 +277,7 @@ Trace_t::log("_wifi.");
 
 #if (UFO_UART_CNT > 1)
 			Trace_t::log("_uart1:");
-			_sys._drv._uart1->init(drv_t::uart_t::unum_t::UART_NUM_1, drv_t::uart1_rx, drv_t::uart1_tx);
+			_sys._drv._uart1->init(drv_t::uart_t::unum_t::UART_NUM_2, drv_t::uart1_rx, drv_t::uart1_tx);
 			// _sys._drv._uart[1] = _sys._drv._uart1->get_status();
 			v_done();
 			
@@ -399,97 +403,101 @@ Trace_t::log("_wifi.");
 						}
 						block->log_incorrect_arg();
 					});
-				
-			cns.mk_blank(
-				"wf",
-				"",
-				[](cns::console_t::block_t block)
-				{
-					vector_t<string_t> &arg_list = block->get_buf();
 
-					if (!arg_list.empty())
+#ifdef UFO_WIFI
+				cns.mk_blank(
+					"wf",
+					"",
+					[](cns::console_t::block_t block)
 					{
-						if (arg_list.size() > 1)
+						vector_t<string_t> &arg_list = block->get_buf();
+
+						if (!arg_list.empty())
 						{
-							sys_data_t &_sys = sys_data_t::get_instanse(); // change to pointer
-							
-							cns::opt_t opt(arg_list[1]);
-							if (opt == 'i' || opt == "info"){
-								if (_sys._drv._wifi._ap)
-								{
-									_sys._drv._wifi._ap->log_ipinfo();
-								}
-								else if (_sys._drv._wifi._sta)
-								{
-									_sys._drv._wifi._sta->log_ipinfo();
-								}
-								else
-								{
-									block->write("no info\n");
-								}
-							}
-							else if (opt == 's' || opt == "set-ip")
+							if (arg_list.size() > 1)
 							{
-								if (opt.arg_count() != 3)
+								sys_data_t &_sys = sys_data_t::get_instanse(); // change to pointer
+
+								cns::opt_t opt(arg_list[1]);
+								if (opt == 'i' || opt == "info")
 								{
-									if (opt.arg_count() == 1)
+									if (_sys._drv._wifi._ap)
 									{
-										if (opt.get_arg(0) == "h")
-										{
-											block->write("set-ip:\n");
-											block->write("use -s/--set-ip=ip,gw,msk\n");
-											return;
-										}
+										_sys._drv._wifi._ap->log_ipinfo();
 									}
-									block->log_incorrect_arg();
-									return;
+									else if (_sys._drv._wifi._sta)
+									{
+										_sys._drv._wifi._sta->log_ipinfo();
+									}
+									else
+									{
+										block->write("no info\n");
+									}
 								}
-								
-								ip_t ip(opt.get_arg(0).c_str());
-								ip_t gw(opt.get_arg(1).c_str());
-								ip_t msk(opt.get_arg(2).c_str());
-								if (!ip || !msk || !gw)
+								else if (opt == 's' || opt == "set-ip")
 								{
-									block->log_incorrect_arg();
-									return;
-								}
+									if (opt.arg_count() != 3)
+									{
+										if (opt.arg_count() == 1)
+										{
+											if (opt.get_arg(0) == "h")
+											{
+												block->write("set-ip:\n");
+												block->write("use -s/--set-ip=ip,gw,msk\n");
+												return;
+											}
+										}
+										block->log_incorrect_arg();
+										return;
+									}
 
-								// todo
-								if (_sys._drv._wifi._ap)
-								{
-									_sys._drv._wifi._ap->ip_config(ip, gw, msk);
-								}
-								else if (_sys._drv._wifi._sta)
-								{
-									_sys._drv._wifi._sta->ip_config(ip, gw, msk);
-								}
-								else
-								{
-									block->write("no info\n");
+									ip_t ip(opt.get_arg(0).c_str());
+									ip_t gw(opt.get_arg(1).c_str());
+									ip_t msk(opt.get_arg(2).c_str());
+									if (!ip || !msk || !gw)
+									{
+										block->log_incorrect_arg();
+										return;
+									}
+
+									// todo
+									if (_sys._drv._wifi._ap)
+									{
+										_sys._drv._wifi._ap->ip_config(ip, gw, msk);
+									}
+									else if (_sys._drv._wifi._sta)
+									{
+										_sys._drv._wifi._sta->ip_config(ip, gw, msk);
+									}
+									else
+									{
+										block->write("no info\n");
+										return;
+									}
+									block->write("wf configuring...\n");
+
+									/// todo =============
+									if (_sys._drv._wifi._ap)
+									{
+										_sys._drv._wifi._ap->log_ipinfo();
+									}
+									else if (_sys._drv._wifi._sta)
+									{
+										_sys._drv._wifi._sta->log_ipinfo();
+									}
+									else
+									{
+										block->write("no info\n");
+									}
+									/// ==================
 									return;
 								}
-								block->write("wf configuring...\n");
-
-								/// todo =============
-								if (_sys._drv._wifi._ap)
-								{
-									_sys._drv._wifi._ap->log_ipinfo();
-								}
-								else if (_sys._drv._wifi._sta)
-								{
-									_sys._drv._wifi._sta->log_ipinfo();
-								}
-								else
-								{
-									block->write("no info\n");
-								}
-								/// ==================
-								return;
 							}
 						}
-					}
-					block->log_incorrect_arg();
-				});
+						block->log_incorrect_arg();
+					});
+#endif
+			
 		}
 	};
 } // ufo

@@ -23,9 +23,9 @@ namespace ufo
 
         enum class uSocketType_t : uint8_t
         {
-            UFO_SOCK_NO,
-            UFO_SOCK_SERVER,
-            UFO_SOCK_CLIENT,
+            null,
+            server,
+            client,
         };
 
         struct uSocketDataPacket_t
@@ -40,6 +40,7 @@ namespace ufo
         class uSocketControlBlock_t
         {
             friend class fast_sock;
+            friend class fsk;       // temp
 
         private:
             uSocketDataPacket_t _data;
@@ -89,7 +90,7 @@ namespace ufo
                 // calculate required string size
                 va_list arg;
                 va_copy(arg, ap);
-                uint32_t req = 1+vsnprintf(NULL, 0, msg, arg);
+                uint32_t req = 1 + vsnprintf(NULL, 0, msg, arg);
                 va_end(arg);
 
                 lock_guard<mutex_t> _l(_lock);
@@ -98,6 +99,10 @@ namespace ufo
                 {
                     req = UFO_SOCKET_BUFFER_SIZE - 1;
                     ret = uSocketReturn_t::owerflow;
+                }
+                else
+                {
+                    req += offset;
                 }
 
                 int n = vsnprintf(_data._payload + offset, req, msg, ap);
@@ -206,6 +211,43 @@ namespace ufo
             }
             
         };
+
+        class fsk_base
+        {
+        public:
+        // type aliases
+            using rcv_t = net::uSocketDataPacket_t;
+            using snd_t = ufo::net::uSocketControlBlock_t;
+            using callback_t = void (*)(rcv_t *);
+
+        protected:
+            std::shared_ptr<snd_t> _snd;
+            std::unique_ptr<rcv_t> _rcv;
+            callback_t _callback = nullptr;
+            
+        public:
+            fsk_base(callback_t cb) 
+                : _snd(std::make_shared<snd_t>()), _rcv(std::make_unique<rcv_t>()), _callback(cb) 
+                {}
+
+            // no cp
+            fsk_base(fsk_base &) = delete;
+            fsk_base &operator=(fsk_base &) = delete;
+
+            fsk_base(fsk_base &&) = default;
+
+            const std::shared_ptr<snd_t> get_block() const { return _snd; }
+
+            virtual void snd() = 0;
+            virtual void rcv() = 0;
+            virtual void ch_snd() = 0;
+            virtual void ch_rcv() = 0;
+
+            virtual ~fsk_base(){
+                printf("~fbase\n");
+            };
+        };
+
 
     } // namespace net
 } // namespace ufo
