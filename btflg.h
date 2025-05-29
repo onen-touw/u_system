@@ -30,6 +30,10 @@ namespace ufo
             return *this;            
         }
         
+        bool operator== (const bit_flag_t<Ty>& o) const {
+            return _flags == o._flags;
+        }
+
         bit_flag_t(bit_flag_t&& oth) : _flags(oth._flags) {
             oth._flags = 0;
         }
