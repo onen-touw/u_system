@@ -79,12 +79,12 @@ namespace ufo
                 if (len > 0)
                 {
                     // Serial.println("rsv->funk");
+                    _rcv->_len = len;
                     _callback(_rcv.get());
                     if (_rcv->_errorCount > 0)
                     {
                         --_rcv->_errorCount;
                     }
-                    _rcv->_len = len;
                 }
                 else
                 {
