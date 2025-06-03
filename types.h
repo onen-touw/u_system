@@ -110,6 +110,10 @@ namespace ufo
                 _states.unset(cns_state_t::bloked);
             }
 
+            const ufo::bit_flag_t<uint8_t>&  get_state() const {
+                return _states;
+            }
+
             bool can_run() {
                 ufo::lock_guard<mutex_t>_l(_lock);
                 bool b = !(_states.get(cns_state_t::bloked) || _states.get(cns_state_t::started));

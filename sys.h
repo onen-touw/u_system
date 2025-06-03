@@ -67,27 +67,36 @@ namespace ufo
 				uint16_t t = _sys._drv._uart0->Available();
                 if (t)
                 {
-					if (_sys._cns.can_run())
+					ufo::bit_flag_t<uint8_t> s = _sys._cns.get_state();
+					using cns_st_t = ufo::types::cns_t::cns_state_t;
+					if (!s.get(cns_st_t::started))
 					{
-						char s[1] = {}; 
-						_sys._drv._uart0->Read(s,1);
-	
-						if (s[0] == '~')
+						if (s.get(cns_st_t::bloked))
 						{
-							_sys._cns.run();	// cns should call .stop in end of ctask
+							_sys._drv._uart0->Flush();
+						}
+						else
+						{
+							char s[1] = {}; 
+							_sys._drv._uart0->Read(s,1);
+		
+							if (s[0] == '~')
+							{
+								_sys._cns.run();	// cns should call .stop in end of ctask
 
-							ufo::cns::console_t cns(_sys._drv._uart0.get());
-							
-							cns_init(cns);
-							app_cb.cns_init(cns);
+								ufo::cns::console_t cns(_sys._drv._uart0.get());
+								
+								cns_init(cns);
+								app_cb.cns_init(cns);
 
-							ufo::thread_cfg cfg_cns;
-							cfg_cns._name = "cns";
-							cfg_cns._core = 0;
-							cfg_cns._prio = 5;
-							cfg_cns._stackSize = 4096;
-							ufo::thread tt(cfg_cns, &ufo::cns::console_t::ctask, std::move(cns));
-							tt.detach();
+								ufo::thread_cfg cfg_cns;
+								cfg_cns._name = "cns";
+								cfg_cns._core = 0;
+								cfg_cns._prio = 5;
+								cfg_cns._stackSize = 4096;
+								ufo::thread tt(cfg_cns, &ufo::cns::console_t::ctask, std::move(cns));
+								tt.detach();
+							}
 						}
 					}
                 }
