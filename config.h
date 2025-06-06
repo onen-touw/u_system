@@ -52,6 +52,9 @@ namespace ufo {
 
 		static constexpr uint8_t version_maj = 0;
 		static constexpr uint8_t version_min = 1;
+		
+		static constexpr uint8_t fs_max_open = 5;
+
 	};
 
 

@@ -14,6 +14,8 @@ namespace ufo
             app_data_error,
             uninit_nullptr,
             
+            fs_dir = 91,
+
             mux_create = 111,
             
             trd_destruction = 131,  // thread
