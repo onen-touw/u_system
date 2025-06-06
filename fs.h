@@ -1,5 +1,8 @@
 #pragma once
 
+#include "config.h"
+#include "esp_spiffs.h"
+
 namespace ufo
 {
         
