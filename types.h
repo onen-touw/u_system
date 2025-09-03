@@ -85,18 +85,15 @@ namespace ufo
 
             ufo::mutex_t _lock;
             ufo::bit_flag_t<uint8_t> _states;
-            // bool started = false;
 
             void run(){
                 ufo::lock_guard<mutex_t>_l(_lock);
                 _states.set(cns_state_t::started);
-                // started = true;
             }
 
             void stop(){
                 ufo::lock_guard<mutex_t>_l(_lock);
                 _states.unset(cns_state_t::started);
-                // started = false;
             }
 
             // lock for start

@@ -105,7 +105,7 @@ namespace ufo
                     req += offset;
                 }
 
-                int n = vsnprintf(_data._payload + offset, req, msg, ap);
+                int n = vsnprintf(_data._payload + offset, req, msg , ap);
                 va_end(ap);
                 _data._len = n;
                 _data._ready = true;
