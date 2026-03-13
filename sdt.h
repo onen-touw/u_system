@@ -33,8 +33,6 @@ namespace ufo
             static sys_data_t d;
             return d;
         }
-
-        ~sys_data_t() {}
     };
 
 } // namespace ufo

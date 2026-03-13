@@ -386,7 +386,7 @@ Trace_t::log("_wifi.");
 			cns.mk_blank(
 				"exit",
 				"",
-				[](cns::console_t::block_t block)
+				[](cns::console_t::block_t& block)
 				{
 					block->exit();
 				});
@@ -394,7 +394,7 @@ Trace_t::log("_wifi.");
 				cns.mk_blank(
 					"dev",
 					"",
-					[](cns::console_t::block_t block)
+					[](cns::console_t::block_t& block)
 					{
 						vector_t<string_t> &arg_list = block->get_buf();
 
@@ -417,7 +417,7 @@ Trace_t::log("_wifi.");
 				cns.mk_blank(
 					"wf",
 					"",
-					[](cns::console_t::block_t block)
+					[](cns::console_t::block_t& block)
 					{
 						vector_t<string_t> &arg_list = block->get_buf();
 

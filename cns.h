@@ -200,7 +200,7 @@ namespace ufo
             };
 #else
         public:
-            using call_t = void(*)(std::shared_ptr<msg_block_t>);
+            using call_t = void(*)(std::shared_ptr<msg_block_t>&);
 #endif
 
         private:
