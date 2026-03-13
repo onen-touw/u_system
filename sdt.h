@@ -13,6 +13,11 @@ namespace ufo
         types::cns_t _cns = {};
         drv::drv_t _drv = {};
 
+#ifdef UFO_WIFI
+        types::wifi_ctrl_t _wifi_ctl;
+#endif
+
+        
             // // !!! read only !!!    // setting in app-task  // reading in a lot of parts 
             // struct drv_t
             // {
@@ -36,5 +41,7 @@ namespace ufo
 
         ~sys_data_t() {}
     };
+
+    static sys_data_t& __global_system_data = sys_data_t::get_instanse();
 
 } // namespace ufo

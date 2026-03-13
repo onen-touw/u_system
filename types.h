@@ -118,6 +118,41 @@ namespace ufo
             }
         };
 
+#ifdef UFO_WIFI
+        struct wifi_ctrl_t {
+
+            enum class wifi_states_t {
+                enable,
+                ap_enable,
+                sta_enable,  
+                static_enable,
+            };
+
+
+            ufo::bit_flag_t<uint8_t> _states;
+            const char* _ssid = nullptr;           
+            const char* _pass = nullptr;  
+            // drv::wf_t::ap_t::ip_cfg_t _ip_config = {};
+
+            wifi_ctrl_t() {
+#if UFO_WIFI_AUTO_ENABLE
+#   if defined (UFO_WIFI_DEFAULT_START_AP) && UFO_WIFI_USE_STATIC_IP
+                _states.set(wifi_states_t::enable, wifi_states_t::ap_enable, wifi_states_t::static_enable);
+#   elif defined (UFO_WIFI_DEFAULT_START_AP)
+                _states.set(wifi_states_t::enable, wifi_states_t::ap_enable);
+
+#   elif defined(UFO_WIFI_DEFAULT_START_STA) && UFO_WIFI_USE_STATIC_IP
+                _states.set(wifi_states_t::enable,wifi_states_t::sta_enable,wifi_states_t::static_enable);
+#   elif defined (UFO_WIFI_DEFAULT_START_STA)
+                _states.set(wifi_states_t::enable,wifi_states_t::sta_enable);
+#   endif
+#endif
+
+            }
+            ~wifi_ctrl_t(){}
+        };
+#endif
+
     } // namespace types
 
 } // namespace ufo

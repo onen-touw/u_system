@@ -147,8 +147,6 @@ namespace ufo
     private:
         std::shared_ptr<Context_t> _context;
 
-        ufo::Error_t& _error = ufo::Error_t::GetInstance();
-
         Handle_t _handle = nullptr;     // no delete
 
     private:
@@ -224,7 +222,7 @@ namespace ufo
                 if (joinable())
                 {
                     terminate();
-                    _error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_creation, "destruction of an unjoined thread")));
+                    __global_error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_creation, "destruction of an unjoined thread")));
                     return *this;
                 }
                 
@@ -244,7 +242,7 @@ namespace ufo
                 // CriticalError_t e;
                 // e._info = GenerateInfo_Code(error::codes_t::trd_creation, "destruction of an unjoined thread");
                 // _error.Push(e);
-                _error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_creation, "destruction of an unjoined thread")));
+                __global_error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_creation, "destruction of an unjoined thread")));
 
             }
         }
@@ -265,7 +263,7 @@ namespace ufo
             if (_context)
             {
                 terminate();
-                _error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_creation, "double-creation")));
+                __global_error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_creation, "double-creation")));
                 return;
             }
             
@@ -299,7 +297,7 @@ namespace ufo
                 delete bridge;
                 _context.reset();
 
-                _error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_creation, "cant create task")));
+                __global_error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_creation, "cant create task")));
 
                 return;
             }
@@ -337,7 +335,7 @@ namespace ufo
                     terminate();
                 }
                 
-                _error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_join_unj, "cant join unjoinable task")));
+                __global_error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_join_unj, "cant join unjoinable task")));
 
                 return;
             }
@@ -356,7 +354,7 @@ namespace ufo
         void detach(){
             if (!_context)
             {
-                _error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_null_opertions, "cant join null-thread")));
+                __global_error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_null_opertions, "cant join null-thread")));
 
                 return;
             }
@@ -369,7 +367,7 @@ namespace ufo
             {
                 // or warinig
                 terminate();
-                _error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_detach_detached, "task has already been detached")));
+                __global_error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_detach_detached, "task has already been detached")));
 
                 return;
             }
@@ -389,7 +387,7 @@ namespace ufo
         {
             if (!_context)
             {
-                _error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_null_opertions, "cant join null-thread")));
+                __global_error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::trd_null_opertions, "cant join null-thread")));
 
                 return;
             }

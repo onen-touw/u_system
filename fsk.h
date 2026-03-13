@@ -23,12 +23,10 @@ namespace ufo
             fsk(const char *addr, sockt_t type, callback_t cb)
                 : fsk_base(cb), ipnet(addr), _type(type)
             {
-                ufo::Error_t &_error = ufo::Error_t::GetInstance();
-
                 _isock = lwip_socket(_addr.sin_family, SOCK_DGRAM, _protoIP);
                 if (_isock < 0)
                 {
-                    _error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::net_bad_sock, "cant create socket")));
+                    __global_error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::net_bad_sock, "cant create socket")));
                     return;
                 }
 
@@ -53,7 +51,7 @@ namespace ufo
                         lwip_shutdown(_isock, 0);
                         lwip_close(_isock);
                         _isock = -1;
-                        _error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::net_bad_sock, "cant create socket")));
+                        __global_error.Push(CriticalError_t(GenerateInfo_Code(error::codes_t::net_bad_sock, "cant create socket")));
                         return;
                     }
                 }

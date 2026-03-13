@@ -24,6 +24,11 @@ namespace ufo
 
         ~ip_t() {}
 
+        void operator=(uint32_t raw) {
+            _ip = raw;
+        }
+
+
         uint8_t operator[](uint8_t ind) const
         {
 
@@ -82,7 +87,7 @@ namespace ufo
         void log()
         {
             uint32_t a = _ip;
-            Trace_t::flog(/* "%u :: " */ "%u.%u.%u.%u\n",
+            Trace_t::flog(/* "%u :: " */ "%u.%u.%u.%u",
                 //   _ip,
                   static_cast<uint32_t>(a & 255),
                   static_cast<uint32_t>((a >> 8) & 255),

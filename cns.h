@@ -200,7 +200,7 @@ namespace ufo
             };
 #else
         public:
-            using call_t = void(*)(std::shared_ptr<msg_block_t>);
+            using call_t = void(*)(std::shared_ptr<msg_block_t>&);
 #endif
 
         private:
@@ -548,9 +548,8 @@ namespace ufo
             }
 
             void ctask(token_t token){
-                sys_data_t& _sys = sys_data_t::get_instanse();
 
-                if (!_sys._cns.can_run())
+                if (!__global_system_data._cns.can_run())
                 {
                     _block->write("bad state\n");
                 }
@@ -569,7 +568,7 @@ namespace ufo
                     utl::sleep_for(100);
                 }
                 _block->write("<console out\n");
-                _sys._cns.stop();
+                __global_system_data._cns.stop();
             }
 
             void print_basic_info() const
@@ -592,6 +591,11 @@ namespace ufo
                 {
                     _block->write("\t- ");
                     _block->write(it->get_name());
+                    if (!it->get_desc().empty())
+                    {
+                        _block->write("\n\t\t");
+                        _block->write(it->get_desc());
+                    }
                     _block->write("\n");
                 }
                 print_basic_info();

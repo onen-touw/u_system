@@ -42,7 +42,7 @@ namespace ufo {
         Error_t(const Error_t&) = delete;
         Error_t& operator =(const Error_t&) = delete;
 
-        static Error_t& GetInstance() {
+        static Error_t& get_instance() {
            return _instance;
         }
 
@@ -274,5 +274,8 @@ namespace ufo {
 
     };
     Error_t Error_t::_instance;
+
+
+    static Error_t& __global_error = Error_t::get_instance();
 
 }   // ufo

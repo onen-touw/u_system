@@ -23,17 +23,17 @@ namespace ufo {
 	class config
 	{
 	public:
-#ifdef UFO_WIFI
-#	ifdef UFO_WIFI_DEFAULT_START_AP
-		static constexpr const char* wifi_ap_ss = "u_esp32";
-		static constexpr const char* wifi_ap_ps = "12345678";
-#	else 
-#		ifdef UFO_WIFI_DEFAULT_START_STA
-		static constexpr const char* wifi_sta_ss = "u_esp32";
-		static constexpr const char* wifi_sta_ps = "12345678";
-#		endif
-#	endif
-#endif
+// #ifdef UFO_WIFI
+// #	ifdef UFO_WIFI_DEFAULT_START_AP
+// 		static constexpr const char* wifi_ap_ss = "u_esp32";
+// 		static constexpr const char* wifi_ap_ps = "12345678";
+// #	else 
+// #		ifdef UFO_WIFI_DEFAULT_START_STA
+// 		static constexpr const char* wifi_sta_ss = "u_esp32";
+// 		static constexpr const char* wifi_sta_ps = "12345678";
+// #		endif
+// #	endif
+// #endif
 
 		static constexpr uint8_t Counting_limit = 5;
 		static constexpr uint8_t Counting_capacity = 5;
